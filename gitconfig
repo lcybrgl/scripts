@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+function show_usage()
+{
+    echo -e "\nUsage: gitconfig username email\nConfigure local git user and global aliases.\n"
+    exit 1
+}
+
+[ ! "$#" == 2 ] && show_usage
+
+git config --local user.name "$1"
+git config --local user.email "$2"
+
+git config --local alias.co checkout
+git config --local alias.br branch
+git config --local alias.ci commit
+git config --local alias.st status
+git config --local alias.unstage 'reset HEAD --'
+git config --local alias.last 'log -10 HEAD --oneline'
