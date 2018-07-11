@@ -35,7 +35,7 @@ check_conn $remotesrv
 rsync -arv $remotesrv:$remotedir/* $localdir/ >& $localdir/`date +%Y-%m-%d`-error.log
 if [ ! $? == 0 ]
 then
-    echo "Error, check error.log in local_dir"
+    echo "Error, check error.log in $localdir"
     exit 1
 fi
 rm -f $localdir/`date +%Y-%m-%d`-error.log
