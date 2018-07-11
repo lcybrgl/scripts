@@ -1,18 +1,18 @@
 #!/bin/bash
 
-slavedb=eshp-eom-db-2
-datapath="/var/lib/pgsql/10/data"
+slavedb=$1
+datapath=$2
 
-if [ $# != 1 ]
+if [ $# != 3 ]
 then
         echo -e "
 Script for Backing up Postgres Data dir.
-Usage: $0 (start|-s)
+Usage: $0 slave-db-host datadir (start|-s)
 "
         exit 1
 fi
 
-case $1 in
+case $3 in
     start|-s)
         echo "Startig PG Base Backup"
         psql -U postgres -h 127.0.0.1 -c "SELECT pg_start_backup('label', true)" > sql.log
