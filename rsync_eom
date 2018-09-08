@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+src_path=$1
+dst_path=$2
+rsync_args="-rtgoP --stats --append-verify"
+
+dir_list=( roles
+           inventories
+           books )
+
+for item in "${dir_list[@]}"
+do
+    echo "Rsyncing ${item}"
+    rsync ${rsync_args} ${src_path}/${item} ${dst_path}/ >& ~/rsync_${item}-`date +%Y-%m-%d`.log
+    if [ ! $? == 0 ]
+    then
+        echo "Fucked up"
+    else
+        echo "${item} successfuly rsynced"
+    fi
+done
+
+exit 0
