@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# Add connection drop
+#SELECT pg_terminate_backend(pg_stat_activity.pid)
+#FROM pg_stat_activity
+#WHERE pg_stat_activity.datname = 'lms2_db' AND pid <> pg_backend_pid();
+
 PGUSER="postgres"
 PGHOST="127.0.0.1"
 
@@ -128,3 +133,4 @@ case $1 in
         ;;
 esac
 exit 0
+
