@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cur_track=`mpc current`
+notify-send -u normal -a mpd MPD "$cur_track"
+
