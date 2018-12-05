@@ -1,0 +1,14 @@
+#!/bin/bash
+
+case $1 in
+    "up" )
+        cur_vol=`mpc volume +5 | grep volume`
+        notify-send -u low -a mpd MPD "$cur_vol"
+        ;;
+    "down" )
+        cur_vol=`mpc volume -5 | grep volume`
+        notify-send -u low -a mpd MPD "$cur_vol"
+        ;;
+esac
+
+
