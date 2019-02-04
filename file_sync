@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -e
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+bld=`tput bold`
+src_path=$1
+d_host=$2
+dest_path=$3
+
+while true; do
+  while read filepath filename
+  do
+      rel_path=${filepath#${src_path}}
+      echo ${bld}${green}rel_path: ${red}$rel_path${reset}
+      echo filename: $filename
+  done < <(inotifywait -r -q -e create ${src_path} | awk '{ print $1" " $3 }')
+done
+
