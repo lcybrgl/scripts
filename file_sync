@@ -6,15 +6,61 @@ green=`tput setaf 2`
 reset=`tput sgr0`
 bld=`tput bold`
 src_path=$1
-d_host=$2
-dest_path=$3
+dest_path=$2
+dest_host=$3
+rsync_args="-rtP"
+log_path=/home/cybrg/file_sync
+
+#echo "Rsyncing ${item}"
+#    if [ ! $? == 0 ]
+#    then
+#        echo "Fucked up"
+#    else
+#        echo "${item} successfuly rsynced"
+#    fi
+
+[ $# -lt 2 ] && { echo "Not enough args"; exit 1; }
+[ $# -gt 3 ] && { echo "Too many args"; exit 1; }
+[ ! -d ${src_path} ] && { echo "No such path:" $1; exit 1; }
+[ ! -d ${log_path} ] && { echo "No such path:" ${log_path}; exit 1; }
+
+if [ ! -n "$3" ]
+then
+    local_sync=1
+else
+    local_sync=0
+fi
 
 while true; do
   while read filepath filename
   do
       rel_path=${filepath#${src_path}}
-      echo ${bld}${green}rel_path: ${red}$rel_path${reset}
-      echo filename: $filename
+      if [ "$local_sync" == 1 ]
+      then
+            echo "Syncing file: ${filepath}${filename}\
+                  to ${dest_path}${rel_path}${filename}"
+            rsync ${rsync_args} ${filepath}${filename}\
+                  ${dest_path}${rel_path}${filename}\
+                  >> ${log_path}/`date +%Y-%m-%d`.log 2>&1
+      fi
+
+      if [ "$local_sync" == 0 ]
+      then
+            echo "Syncing file: ${filepath}${filename}\
+                  to ${dest_host}:${dest_path}${rel_path}${filename}"
+            rsync ${rsync_args} ${filepath}${filename}\
+                  ${dest_host}:${dest_path}${rel_path}${filename}\
+                  >> ${log_path}/`date +%Y-%m-%d`.log 2>&1
+      fi
+
+      if [ $? == 0 ]
+      then
+          echo "Succsess: ${filename}"
+      else
+          echo "Failed sync: ${filename}"
+      fi
+      #printf "${bld}${green}rel_path: ${red}$rel_path${reset}"
+      #printf "${bld}${green}filename: ${red}$filename${reset}"
   done < <(inotifywait -r -q -e create ${src_path} | awk '{ print $1" " $3 }')
 done
 
