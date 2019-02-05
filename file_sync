@@ -37,8 +37,8 @@ while true; do
       rel_path=${filepath#${src_path}}
       if [ "$local_sync" == 1 ]
       then
-            echo "Syncing file: ${filepath}${filename}\
-                  to ${dest_path}${rel_path}${filename}"
+            printf "${bld}${green}Syncing file: ${filename}"
+            printf " ...${reset} "
             rsync ${rsync_args} ${filepath}${filename}\
                   ${dest_path}${rel_path}${filename}\
                   >> ${log_path}/`date +%Y-%m-%d`.log 2>&1
@@ -46,8 +46,8 @@ while true; do
 
       if [ "$local_sync" == 0 ]
       then
-            echo "Syncing file: ${filepath}${filename}\
-                  to ${dest_host}:${dest_path}${rel_path}${filename}"
+            printf "${bld}${green}Syncing file: ${filename}"
+            printf " ...${reset} "
             rsync ${rsync_args} ${filepath}${filename}\
                   ${dest_host}:${dest_path}${rel_path}${filename}\
                   >> ${log_path}/`date +%Y-%m-%d`.log 2>&1
@@ -55,9 +55,9 @@ while true; do
 
       if [ $? == 0 ]
       then
-          echo "Succsess: ${filename}"
+          printf "${bld}${red}Succsess: ${filename}${reset}\n"
       else
-          echo "Failed sync: ${filename}"
+          printf "${bld}${red}Failed sync: ${filename}${reset}\n"
       fi
       #printf "${bld}${green}rel_path: ${red}$rel_path${reset}"
       #printf "${bld}${green}filename: ${red}$filename${reset}"
