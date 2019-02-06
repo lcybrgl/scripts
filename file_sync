@@ -1,66 +1,66 @@
 #!/bin/bash
 
-set -e
-red=`tput setaf 1`
-green=`tput setaf 2`
-reset=`tput sgr0`
-bld=`tput bold`
-src_path=$1
-dest_path=$2
-dest_host=$3
-rsync_args="-rtP"
-log_path=/home/cybrg/file_sync
+source /root/filesyncd.conf
 
-#echo "Rsyncing ${item}"
-#    if [ ! $? == 0 ]
-#    then
-#        echo "Fucked up"
-#    else
-#        echo "${item} successfuly rsynced"
-#    fi
+rsync_args="-pgotR --chown=${username}:${groupname}"
+function check_conn ()
+{
+    ping -c 1 $1 >& /dev/null
+    if [ ! $? == 0 ]
+    then
+        echo "Connection error: $1"
+        exit 1
+    fi
 
-[ $# -lt 2 ] && { echo "Not enough args"; exit 1; }
-[ $# -gt 3 ] && { echo "Too many args"; exit 1; }
+    nc -z $1 22
+    if [ ! $? == 0 ]
+    then
+        echo "Port is closed on server: $1"
+        exit 1
+    fi
+}
+
+function myfunction() {
+    while true; do
+        inotifywait -r -q -e create,modify,close_write ${src_path} | awk '{ print $1" " $3 }' | while read filepath filename
+    do
+        rel_path=${filepath#${src_path}}
+        if [ "$local_sync" == 1 ]
+        then
+              printf "Syncing file: ${filename}"
+              printf " ... "
+              rsync ${rsync_args} ${src_path}/.${rel_path}${filename}\
+                    ${dest_path}/\
+                    >> ${log_path}/sync.log 2>&1
+        fi
+        if [ "$local_sync" == 0 ]
+        then
+              printf "Syncing file: ${filename}"
+              printf " ... "
+              rsync ${rsync_args} ${src_path}/.${rel_path}${filename}\
+                    ${dest_host}:${dest_path}/\
+                    >> ${log_path}/sync.log 2>&1
+        fi
+        if [ $? == 0 ]
+        then
+            printf "Succsess!\n"
+        else
+            printf "Failed sync!\n"
+        fi
+    done
+done
+
+}
+
+[ ! -d ${log_path} ] && { mkdir -p ${log_path}; }
 [ ! -d ${src_path} ] && { echo "No such path:" $1; exit 1; }
-[ ! -d ${log_path} ] && { echo "No such path:" ${log_path}; exit 1; }
-
-if [ ! -n "$3" ]
+if [ ! -n "${dest_host}" ]
 then
     local_sync=1
 else
     local_sync=0
+    check_conn ${dest_host}
 fi
 
-while true; do
-  while read filepath filename
-  do
-      rel_path=${filepath#${src_path}}
-      if [ "$local_sync" == 1 ]
-      then
-            printf "${bld}${green}Syncing file: ${filename}"
-            printf " ...${reset} "
-            rsync ${rsync_args} ${filepath}${filename}\
-                  ${dest_path}${rel_path}${filename}\
-                  >> ${log_path}/`date +%Y-%m-%d`.log 2>&1
-      fi
-
-      if [ "$local_sync" == 0 ]
-      then
-            printf "${bld}${green}Syncing file: ${filename}"
-            printf " ...${reset} "
-            rsync ${rsync_args} ${filepath}${filename}\
-                  ${dest_host}:${dest_path}${rel_path}${filename}\
-                  >> ${log_path}/`date +%Y-%m-%d`.log 2>&1
-      fi
-
-      if [ $? == 0 ]
-      then
-          printf "${bld}${red}Succsess: ${filename}${reset}\n"
-      else
-          printf "${bld}${red}Failed sync: ${filename}${reset}\n"
-      fi
-      #printf "${bld}${green}rel_path: ${red}$rel_path${reset}"
-      #printf "${bld}${green}filename: ${red}$filename${reset}"
-  done < <(inotifywait -r -q -e create ${src_path} | awk '{ print $1" " $3 }')
-done
+myfunction >> ${log_path}/sync.log &
 
