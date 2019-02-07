@@ -8,18 +8,6 @@ else
     exit 1
 fi
 
-rsync_args="-pgotR --chown=${username}:${groupname}"
-
-[ ! -d ${log_path} ] && { mkdir -p ${log_path}; }
-[ ! -d ${src_path} ] && { echo "No such path:" $1; exit 1; }
-if [ ! -n "${dest_host}" ]
-then
-    local_sync=1
-else
-    local_sync=0
-    check_conn ${dest_host}
-fi
-
 function check_conn ()
 {
     ping -c 1 $1 >& /dev/null
@@ -66,8 +54,19 @@ function myfunction() {
         fi
     done
 done
-
 }
+
+rsync_args="-pgotR --chown=${remote_user}:${remote_group}"
+
+[ ! -d ${log_path} ] && { mkdir -p ${log_path}; }
+[ ! -d ${src_path} ] && { echo "No such path:" $1; exit 1; }
+if [ ! -n "${dest_host}" ]
+then
+    local_sync=1
+else
+    local_sync=0
+    check_conn ${dest_host}
+fi
 
 myfunction >> ${log_path}/sync.log &
 
