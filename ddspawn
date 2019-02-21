@@ -11,8 +11,8 @@ varname=$1
 if xwininfo -tree -root | grep "(\"dropdown_$1\" ";
 then
 	echo "Window detected."
-	i3 "[instance=\"dropdown_${varname}\"] scratchpad show; [instance=\"dropdown_${varname}\"] move position center"
+	i3 "[instance=dropdown_${varname}] scratchpad show; [instance=dropdown_${varname}] move position center"
 else
 	echo "Window not detected... spawning."
-	i3 "exec --no-startup-id $TERMINAL -n dropdown_${varname}"
+	i3 "exec ${varname} -n dropdown_${varname}"
 fi
