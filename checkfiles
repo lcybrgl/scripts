@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+
+# Creating traps, just in case...
+trap 'echo ""; echo "Exiting script..."; exit 1;' SIGINT SIGQUIT SIGTSTP
+
+filecontent=( `cat $1` )
+alldirs=`cat $1 | wc -l`
+found=0
+
+for item in "${filecontent[@]}"
+do
+    if [ -d $item ]
+    then
+        found=$(( $found + 1 ))
+        #echo "found $item"
+    fi
+done
+
+echo "found $found dirs"
+echo "total $alldirs dirs"
+
+# Releasing traps
+trap - SIGINT SIGQUIT SIGTSTP
+exit 0

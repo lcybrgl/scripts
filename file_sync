@@ -1,20 +1,72 @@
 #!/bin/bash
 
-set -e
-red=`tput setaf 1`
-green=`tput setaf 2`
-reset=`tput sgr0`
-bld=`tput bold`
-src_path=$1
-d_host=$2
-dest_path=$3
+if [ -f "/root/filesyncd.conf" ]
+then
+    source /root/filesyncd.conf
+else
+    echo "No config file found"
+    exit 1
+fi
 
-while true; do
-  while read filepath filename
-  do
-      rel_path=${filepath#${src_path}}
-      echo ${bld}${green}rel_path: ${red}$rel_path${reset}
-      echo filename: $filename
-  done < <(inotifywait -r -q -e create ${src_path} | awk '{ print $1" " $3 }')
+function check_conn ()
+{
+    ping -c 1 $1 >& /dev/null
+    if [ ! $? == 0 ]
+    then
+        echo "Connection error: $1"
+        exit 1
+    fi
+
+    nc -z $1 22
+    if [ ! $? == 0 ]
+    then
+        echo "Port is closed on server: $1"
+        exit 1
+    fi
+}
+
+function myfunction() {
+    while true; do
+        inotifywait -r -q -e create,modify,close_write ${src_path} | awk '{ print $1" " $3 }' | while read filepath filename
+    do
+        rel_path=${filepath#${src_path}}
+        if [ "$local_sync" == 1 ]
+        then
+              printf "Syncing file: ${filename}"
+              printf " ... "
+              rsync ${rsync_args} ${src_path}/.${rel_path}${filename}\
+                    ${dest_path}/\
+                    >> ${log_path}/sync.log 2>&1
+        fi
+        if [ "$local_sync" == 0 ]
+        then
+              printf "Syncing file: ${filename}"
+              printf " ... "
+              rsync ${rsync_args} ${src_path}/.${rel_path}${filename}\
+                    ${dest_host}:${dest_path}/\
+                    >> ${log_path}/sync.log 2>&1
+        fi
+        if [ $? == 0 ]
+        then
+            printf "Succsess!\n"
+        else
+            printf "Failed sync!\n"
+        fi
+    done
 done
+}
+
+rsync_args="-pgotR --chown=${remote_user}:${remote_group}"
+
+[ ! -d ${log_path} ] && { mkdir -p ${log_path}; }
+[ ! -d ${src_path} ] && { echo "No such path:" $1; exit 1; }
+if [ ! -n "${dest_host}" ]
+then
+    local_sync=1
+else
+    local_sync=0
+    check_conn ${dest_host}
+fi
+
+myfunction >> ${log_path}/sync.log &
 
