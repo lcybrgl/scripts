@@ -1,6 +1,7 @@
 #!/bin/bash
 
-. $HOME/.dirsfile
+video=(/filo/Video/Movies
+       /filo/Video/TVShows)
 
 for i in ${video[@]}
 do
