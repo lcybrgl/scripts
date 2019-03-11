@@ -91,6 +91,16 @@ function size_db ()
     fi
 }
 
+function size_tables ()
+{
+    tbl_cmd="SELECT nspname || '.' || relname AS relation, pg_size_pretty(pg_total_relation_size(C.oid)) AS total_size FROM pg_class C LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace) WHERE nspname NOT IN ('pg_catalog', 'information_schema') AND C.relkind <> 'i' AND nspname !~ '^pg_toast' ORDER BY pg_total_relation_size(C.oid) DESC LIMIT 10;"
+    echo ""
+    if [ ! "$1" = "" ]
+    then
+        psql -U $PGUSER -h $PGHOST -d $1 -c "$tbl_cmd"
+    fi
+}
+
 function hit_ratio ()
 {
     if [ "$1" = "" ]
@@ -123,6 +133,10 @@ case $1 in
         ;;
     -s)
         size_db $2
+        ;;
+    -t)
+        [ "$2" = "" ] && echo "Need more arguments" && exit 1
+        size_tables $2
         ;;
     -r)
         hit_ratio $2
