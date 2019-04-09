@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mon=`xrandr | grep "\Wconnected" | awk '{print $1}'`
+xrandr --output $mon --primary
