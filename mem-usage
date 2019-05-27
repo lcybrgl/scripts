@@ -1,0 +1,13 @@
+#!/bin/bash
+
+printf "%-10s%-10s%s\n" "PID" "MEMORY" "COMMAND"
+
+arr=(`ps x -o pid,command,uname | grep ${1} | grep -v grep | awk '{print $1 ":" $2}'`)
+
+for i in ${arr[@]}; do
+    cpid=$(echo $i | cut -d: -f1)
+    memory=$(pmap $cpid | grep total | awk '{print $2}')
+    cmd=$(echo $i | cut -d: -f2)
+    printf "%-10s%-10s%-10s%s\n" "${cpid}" "${memory}" "${cmd}"
+done
+
