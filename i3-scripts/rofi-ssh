@@ -1,5 +1,4 @@
 #!/bin/bash
 
-export TERM='screen-256color'
 rofi -show ssh -location 0 -opacity 75
 
