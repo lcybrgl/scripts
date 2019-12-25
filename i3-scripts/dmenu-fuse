@@ -1,0 +1,34 @@
+#!/bin/bash
+
+mount_path="$HOME/mounts"
+while IFS=" " read -r id name
+do
+    devices+=("$id $name")
+done < <(simple-mtpfs -l | awk -F ':' '{ print $1,$2}' | awk '{ print $1,$2 }')
+sel="$(printf '%s\n' "${devices[@]}" | sort -f | dmenu -l 30 -p "Select Device: ")"
+
+if [ "$sel" ]
+then
+    m_id=`echo "$sel" | awk '{ print $1 }'`
+    m_name=`echo "$sel" | awk '{ print $2 }'`
+    m_path="$mount_path/$m_id"-"$m_name"
+    m_count=$(df | grep $m_path | wc -l)
+
+    if [ "$m_count" -gt 0 ]
+    then
+        notify-send -u critical -t 3000 -a mtp_mount "$m_name" "Already mounted!"
+        exit 10
+    fi
+
+    if [ ! -d $m_path ]
+    then
+        mkdir $m_path
+    fi
+
+    simple-mtpfs --device $m_id $m_path
+    notify-send -u low -t 5000 -a mtp_mount "$m_name" "Mounted successfuly!"
+else
+    exit 1
+fi
+
+
