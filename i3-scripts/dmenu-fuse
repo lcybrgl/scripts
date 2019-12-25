@@ -22,7 +22,7 @@ then
 
     if [ ! -d $m_path ]
     then
-        mkdir $m_path
+        mkdir -p $m_path
     fi
 
     simple-mtpfs --device $m_id $m_path
