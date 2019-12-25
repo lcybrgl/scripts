@@ -1,10 +1,19 @@
 #!/bin/bash
 
 mount_path="$HOME/mounts"
+
+check_dev=`simple-mtpfs -l 2> /dev/null | awk -F ':' '{ print $1,$2}' | awk '{ print $1,$2 }' | wc -l`
+
+if [ "$check_dev" = 0 ]
+then
+    notify-send -u critical -t 3000 -a mtp_mount "No available devices"
+    exit 0
+fi
+
 while IFS=" " read -r id name
 do
     devices+=("$id $name")
-done < <(simple-mtpfs -l | awk -F ':' '{ print $1,$2}' | awk '{ print $1,$2 }')
+done < <(simple-mtpfs -l 2> /dev/null | awk -F ':' '{ print $1,$2}' | awk '{ print $1,$2 }')
 sel="$(printf '%s\n' "${devices[@]}" | sort -f | dmenu -l 30 -p "Select Device: ")"
 
 if [ "$sel" ]
@@ -17,7 +26,7 @@ then
     if [ "$m_count" -gt 0 ]
     then
         notify-send -u critical -t 3000 -a mtp_mount "$m_name" "Already mounted!"
-        exit 10
+        exit 0
     fi
 
     if [ ! -d $m_path ]
@@ -25,8 +34,14 @@ then
         mkdir -p $m_path
     fi
 
-    simple-mtpfs --device $m_id $m_path
-    notify-send -u low -t 5000 -a mtp_mount "$m_name" "Mounted successfuly!"
+    simple-mtpfs --device $m_id $m_path &> /dev/null
+
+    if [ $? = 0 ]
+    then
+        notify-send -u low -t 5000 -a mtp_mount "$m_name" "Mounted successfuly!"
+    else
+        notify-send -u critical -t 5000 -a mtp_mount "$m_name" "Выключена передача файлов?"
+    fi
 else
     exit 1
 fi
