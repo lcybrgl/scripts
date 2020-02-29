@@ -1,0 +1,24 @@
+#!/bin/bash
+
+linkdest="$HOME/.ssh"
+linksrc="$HOME/.ssh-$1"
+
+if [ ! -h ${linkdest} ]
+then
+    echo "${linkdest} is not a symlink"
+    echo "exiting..."
+    exit 1
+fi
+
+rm -f ${linkdest}
+ln -s ${linksrc} ${linkdest}
+
+if [ $? = 0 ]
+then
+    echo "linked .ssh to ${linksrc}"
+    exit 0
+else
+    echo "Error!"
+    exit 1
+fi
+
