@@ -5,10 +5,10 @@ video=(/filo/Video/Movies
 
 for i in ${video[@]}
 do
-	videonames+=("`find $i -type f | grep -vi x-art | egrep -v "(\.srt|\.aac|\.ogg)"`")
+	videonames+=("`find $i -type f | egrep -v "(\.srt|\.aac|\.ogg|\.ac3)"`")
 done
 
-sel="$(printf '%s\n' "${videonames[@]}" | sort -f | dmenu -l 30 -p "Select file: ")"
+sel="$(printf '%s\n' "${videonames[@]}" | sort -f | dmenu -c -l 30 -p "Select file: ")"
 
 if [ "$sel" ]
 then
